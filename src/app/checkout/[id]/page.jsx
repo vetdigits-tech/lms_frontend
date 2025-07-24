@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -29,6 +28,7 @@ export default function CheckoutPage({ params }) {
       try {
         const res = await fetch(`${API_URL}/api/courses/${courseId}`, {
           credentials: 'include',
+          headers: { 'Accept': 'application/json' },
         });
         const data = await res.json();
         setCourse(data);
@@ -64,6 +64,7 @@ export default function CheckoutPage({ params }) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'X-XSRF-TOKEN': xsrfToken,
         },
         body: JSON.stringify({
@@ -96,6 +97,7 @@ export default function CheckoutPage({ params }) {
               credentials: 'include',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-XSRF-TOKEN': xsrf,
               },
               body: JSON.stringify({
@@ -117,22 +119,28 @@ export default function CheckoutPage({ params }) {
             await fetch(`${API_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
             const driveXsrf = getCookie('XSRF-TOKEN');
 
-            const chapRes = await fetch(`${API_URL}/api/courses/${courseId}/chapters`, {
-              credentials: 'include',
-              headers: { 'Accept': 'application/json' },
-            });
+            const chapRes = await fetch(
+              `${API_URL}/api/courses/${courseId}/chapters`,
+              {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' },
+              }
+            );
             const chapters = await chapRes.json();
-            const folders = chapters
-              .filter((ch) => ch.drive_folder_id)
-              .map((ch) => ch.drive_folder_id);
+            const folders = Array.isArray(chapters)
+              ? chapters
+                  .filter(ch => ch.drive_folder_id)
+                  .map(ch => ch.drive_folder_id)
+              : [];
 
             await Promise.all(
-              folders.map((folderId) =>
+              folders.map(folderId =>
                 fetch(`${API_URL}/api/drive/grant-access`, {
                   method: 'POST',
                   credentials: 'include',
                   headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-XSRF-TOKEN': driveXsrf,
                   },
                   body: JSON.stringify({
@@ -143,11 +151,12 @@ export default function CheckoutPage({ params }) {
               )
             );
 
+            // 5) Success UI & redirect
             toast.success('Payment successful and access granted!');
             router.push(
               `/payment-success?orderId=${response.razorpay_order_id}` +
-              `&paymentId=${response.razorpay_payment_id}` +
-              `&courseId=${course.id}`
+                `&paymentId=${response.razorpay_payment_id}` +
+                `&courseId=${course.id}`
             );
           } catch (err) {
             console.error('Post-payment error:', err);
@@ -159,7 +168,6 @@ export default function CheckoutPage({ params }) {
       };
 
       new window.Razorpay(options).open();
-
     } catch (err) {
       console.error('Payment initiation failed:', err);
       toast.error(err.message || 'Payment initiation error.');
