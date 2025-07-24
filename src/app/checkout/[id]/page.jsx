@@ -1,19 +1,15 @@
 
 'use client';
-export const dynamic = 'force-dynamic';
-
-
 
 import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Script from 'next/script';
 import { LoaderCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
-export default function CheckoutPage() {
-  const pathname = usePathname();
-  const courseId = pathname.split('/').pop(); // gets last segment, e.g., '123' from /checkout/123
+export default function CheckoutPage({ params }) {
+  const courseId = params.id;
   const { user, loading: userLoading } = useAuth();
   const router = useRouter();
   const [course, setCourse] = useState(null);
