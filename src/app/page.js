@@ -36,7 +36,6 @@ export default function Home() {
   const router = useRouter();
   const [showContact, setShowContact] = useState(false);
 
-  // Typing animation state
   const fullText = 'Welcome to VetDigit LMS';
   const [typedText, setTypedText] = useState('');
   const [completed, setCompleted] = useState(false);
@@ -54,12 +53,9 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Redirect authenticated users to their respective dashboards
   useEffect(() => {
-    const currentPath = window.location.pathname;
-    if (!loading && user && currentPath === '/') {
-      const target = user.role === 'admin' ? '/admin' : '/dashboard';
-      router.push(target);
+    if (!loading && user && window.location.pathname === '/') {
+      router.push(user.role === 'admin' ? '/admin' : '/dashboard');
     }
   }, [user, loading, router]);
 
@@ -85,7 +81,7 @@ export default function Home() {
 
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center text-center space-y-6 px-4">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight whitespace-nowrap">
+        <h1 className="text-3xl font-extrabold leading-tight whitespace-nowrap sm:text-4xl md:text-6xl">
           <span className="inline-block border-r-4 border-white animate-caret">
             {typedText}
           </span>
@@ -94,19 +90,19 @@ export default function Home() {
           Learn, grow, and upskill with our premium digital learning platform.
         </p>
 
-        <div className={`flex w-full max-w-md flex-col gap-3 sm:flex-row transition-opacity duration-700 ${completed ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`flex w-full max-w-md flex-col gap-4 transition-opacity duration-700 sm:flex-row ${completed ? 'opacity-100' : 'opacity-0'}`}>
           <Link href="/login">
-            <button className="w-full bg-white text-blue-800 font-semibold px-4 py-3 rounded-lg transform hover:scale-105 transition">
+            <button className="w-full bg-white text-blue-800 font-semibold px-4 py-3 rounded-full sm:rounded-lg hover:scale-105 transition">
               Continue to LMS
             </button>
           </Link>
           <Link href="/register">
-            <button className="w-full bg-yellow-400 text-blue-800 font-semibold px-4 py-3 rounded-lg transform hover:scale-105 transition">
+            <button className="w-full bg-yellow-400 text-blue-800 font-semibold px-4 py-3 rounded-full sm:rounded-lg hover:scale-105 transition">
               Register Now
             </button>
           </Link>
           <Link href="/about">
-            <button className="w-full border border-white text-white font-semibold px-4 py-3 rounded-lg transform hover:scale-105 transition">
+            <button className="w-full border border-white text-white font-semibold px-4 py-3 rounded-full sm:rounded-lg hover:scale-105 transition">
               About Us
             </button>
           </Link>
