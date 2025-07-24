@@ -1,4 +1,3 @@
-// File: src/app/page.jsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -39,21 +38,20 @@ export default function Home() {
 
   // Redirect authenticated users to their respective dashboards
   useEffect(() => {
-  const currentPath = window.location.pathname;
+    const currentPath = window.location.pathname;
 
-  if (!loading && user && currentPath === '/') {
-    const target = user.role === 'admin' ? '/admin' : '/dashboard';
-    router.push(target);
-  }
-}, [user, loading, router]);
-
+    if (!loading && user && currentPath === '/') {
+      const target = user.role === 'admin' ? '/admin' : '/dashboard';
+      router.push(target);
+    }
+  }, [user, loading, router]);
 
   if (loading) {
     return <LoadingScreen />;
   }
 
   return (
-    <main className="relative flex flex-col items-center justify-between min-h-screen bg-gradient-to-br from-blue-700 to-purple-700 px-4 py-16 text-white">
+    <main className="relative flex flex-col items-center min-h-screen bg-gradient-to-br from-blue-700 to-purple-700 px-4 py-16 text-white">
       {/* Contact Us toggle */}
       <button
         onClick={() => setShowContact((v) => !v)}
@@ -104,7 +102,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full max-w-screen-lg mt-10 text-center text-xs sm:text-sm text-white/80">
+      <footer className="w-full max-w-screen-lg mt-10 md:mt-auto text-center text-xs sm:text-sm text-white/80">
         <div className="space-y-2">
           <div>© {new Date().getFullYear()} VetDigit LMS. All rights reserved.</div>
           <div className="flex justify-center space-x-4">
@@ -118,7 +116,7 @@ export default function Home() {
         </div>
 
         {/* Divider */}
-        <div className="mx-auto mt-4 h-px w-24 bg-white/30" />
+        <div className="mx-auto mt-2 h-px w-24 bg-white/30" />
 
         {/* Powered By Aqua Vitoe */}
         <div className="mt-2 text-xs sm:text-sm text-white/70">
