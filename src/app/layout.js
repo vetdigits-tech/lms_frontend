@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "VetDigit LMS",
   description: "Learning Management System",
+   icons: {
+    icon: '/favicon.png', // ✅ This line adds the favicon
+  },
 };
 
 export default function RootLayout({ children }) {
