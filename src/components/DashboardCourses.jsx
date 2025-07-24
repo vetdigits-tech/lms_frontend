@@ -25,7 +25,7 @@ export default function DashboardCourses({
         <p className="mb-4 text-lg text-gray-700">
           You are not enrolled in any courses yet.
         </p>
-        <Link href="/courses">
+        <Link href="/dashboard/courses">
           <button className="rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700">
             Start Your Learning Journey
           </button>
