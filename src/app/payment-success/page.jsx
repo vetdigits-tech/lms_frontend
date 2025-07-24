@@ -1,12 +1,9 @@
 'use client';
-export const dynamic = 'force-dynamic';
-
-
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { LoaderCircle } from 'lucide-react';
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const paymentId = searchParams.get('paymentId');
@@ -16,7 +13,6 @@ export default function PaymentSuccessPage() {
   const [course, setCourse] = useState(null);
   const [loadingCourse, setLoadingCourse] = useState(true);
 
-  // Auto-redirect after 4 seconds
   useEffect(() => {
     const timeout = setTimeout(() => {
       router.push('/dashboard');
@@ -24,7 +20,6 @@ export default function PaymentSuccessPage() {
     return () => clearTimeout(timeout);
   }, [router]);
 
-  // Fetch course data for invoice
   useEffect(() => {
     if (!courseId) {
       setLoadingCourse(false);
@@ -82,5 +77,10 @@ export default function PaymentSuccessPage() {
   );
 }
 
-
-
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div className="text-center p-8">Loading payment status...</div>}>
+      <PaymentSuccessContent />
+    </Suspense>
+  );
+}
