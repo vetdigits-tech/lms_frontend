@@ -55,7 +55,7 @@ export default function CheckoutPage({ params }) {
 
   const handlePayment = async () => {
     try {
-      // 1) CSRF & create session
+      // 1) CSRF & create Razorpay session
       await fetch(`${API_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
       const xsrfToken = getCookie('XSRF-TOKEN');
 
@@ -74,12 +74,11 @@ export default function CheckoutPage({ params }) {
         }),
       });
       const { orderId } = await sessionRes.json();
-
       if (!orderId || !window.Razorpay) {
         throw new Error('Payment initiation failed.');
       }
 
-      // 2) Open Razorpay
+      // 2) Launch Razorpay checkout
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         order_id: orderId,
@@ -88,9 +87,9 @@ export default function CheckoutPage({ params }) {
         image: '/logo.png',
         handler: async (response) => {
           try {
-            // 3) Verify payment
+            // 3) Verify payment on server
             await fetch(`${API_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
-            const xsrf = getCookie('XSRF-TOKEN');
+            const xsrfVerify = getCookie('XSRF-TOKEN');
 
             const verifyRes = await fetch(`${API_URL}/api/payment/verify`, {
               method: 'POST',
@@ -98,7 +97,7 @@ export default function CheckoutPage({ params }) {
               headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-XSRF-TOKEN': xsrf,
+                'X-XSRF-TOKEN': xsrfVerify,
               },
               body: JSON.stringify({
                 paymentId: response.razorpay_payment_id,
@@ -109,13 +108,12 @@ export default function CheckoutPage({ params }) {
               }),
             });
             const { success } = await verifyRes.json();
-
             if (!success) {
               toast.error('Payment verification failed.');
               return;
             }
 
-            // 4) Grant Drive access for each chapter folder
+            // 4) Fetch chapters & grant Drive access
             await fetch(`${API_URL}/sanctum/csrf-cookie`, { credentials: 'include' });
             const driveXsrf = getCookie('XSRF-TOKEN');
 
@@ -133,25 +131,31 @@ export default function CheckoutPage({ params }) {
                   .map(ch => ch.drive_folder_id)
               : [];
 
-            await Promise.all(
-              folders.map(folderId =>
-                fetch(`${API_URL}/api/drive/grant-access`, {
-                  method: 'POST',
-                  credentials: 'include',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-XSRF-TOKEN': driveXsrf,
-                  },
-                  body: JSON.stringify({
-                    user_id: user.id,
-                    folder_id: folderId,
-                  }),
-                })
-              )
-            );
+            // check each grant-access response
+            const grantPromises = folders.map(async folderId => {
+              const res = await fetch(`${API_URL}/api/drive/grant-access`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                  'X-XSRF-TOKEN': driveXsrf,
+                },
+                body: JSON.stringify({
+                  user_id: user.id,
+                  folder_id: folderId,
+                }),
+              });
+              if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || `Grant-access failed: ${res.status}`);
+              }
+            });
 
-            // 5) Success UI & redirect
+            // only if all succeed...
+            await Promise.all(grantPromises);
+
+            // 5) Notify & redirect
             toast.success('Payment successful and access granted!');
             router.push(
               `/payment-success?orderId=${response.razorpay_order_id}` +
