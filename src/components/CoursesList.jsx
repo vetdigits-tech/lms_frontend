@@ -130,19 +130,12 @@ export default function CoursesList({ apiUrl, onSelect }) {
                     </p>
                     <div className="flex items-center justify-between">
                       {isEnrolled ? (
-                        <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded">
-                          Already Enrolled
-                        </span>
+                        <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded">Already Enrolled</span>
+                      ) : parseFloat(course.price) === 0 ? (
+                        <span className="px-3 py-1 bg-green-600 text-white uppercase font-extrabold rounded-full shadow">FREE!</span>
                       ) : (
-                        <span className="text-base font-semibold text-gray-900">
-                          ₹{course.price}
-                        </span>
+                        <span className="text-base font-semibold text-gray-900">₹{course.price}</span>
                       )}
-                      <button
-                        className="text-blue-600 font-medium hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 text-xs"
-                      >
-                        View Details
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -183,17 +176,13 @@ export default function CoursesList({ apiUrl, onSelect }) {
                   </p>
                   <div className="flex items-center justify-between">
                     {isEnrolled ? (
-                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded">
-                        Already Enrolled
-                      </span>
+                      <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded">Already Enrolled</span>
+                    ) : parseFloat(course.price) === 0 ? (
+                      <span className="px-3 py-1 bg-green-600 text-white uppercase font-extrabold rounded-full shadow">FREE!</span>
                     ) : (
-                      <span className="text-lg font-medium text-gray-900">
-                        ₹{course.price}
-                      </span>
+                      <span className="text-lg font-medium text-gray-900">₹{course.price}</span>
                     )}
-                    <button
-                      className="text-blue-600 font-medium hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    >
+                    <button className="text-blue-600 font-medium hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
                       View Details
                     </button>
                   </div>

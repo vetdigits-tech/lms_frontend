@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { FaLock } from 'react-icons/fa';
+import { LoaderCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
@@ -11,7 +12,9 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
   const [course, setCourse] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showChapters, setShowChapters] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
+  // Load course
   useEffect(() => {
     if (!courseId) return;
     (async () => {
@@ -34,9 +37,50 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
   if (!course || course.message)
     return <p className="py-6 text-center text-red-500">Course not found.</p>;
 
-  // Use the new enrolledCourses array
   const enrolledIds = (user?.enrolledCourses || []).map(c => c.id.toString());
   const isEnrolled = enrolledIds.includes(course.id.toString());
+
+  // Updated enroll handler: full reload of /dashboard
+  const handleEnroll = async () => {
+    setProcessing(true);
+    try {
+      // 1) CSRF cookie
+      await fetch(`${apiUrl}/sanctum/csrf-cookie`, { credentials: 'include' });
+      // 2) Extract token
+      const raw = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('XSRF-TOKEN='))
+        ?.split('=')[1] || '';
+      const xsrf = decodeURIComponent(raw);
+      // 3) POST to enroll
+      const res = await fetch(
+        `${apiUrl}/api/courses/${course.id}/enroll`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': xsrf,
+          },
+        }
+      );
+      if (res.ok) {
+        // full reload so dashboard re-fetches
+        window.location.href = '/dashboard';
+      } else {
+        let errBody;
+        try { errBody = await res.json(); }
+        catch { errBody = { message: `Status ${res.status}` }; }
+        alert(errBody.message || 'Enrollment failed');
+        setProcessing(false);
+      }
+    } catch (e) {
+      console.error('Enroll error', e);
+      alert('Unexpected error—check console');
+      setProcessing(false);
+    }
+  };
+
   const handleBuyNow = () => router.push(`/checkout/${course.id}`);
 
   return (
@@ -47,12 +91,11 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
             onClick={onBack}
             className="text-blue-600 hover:text-blue-800 mb-3 flex items-center gap-1 text-base font-medium"
           >
-            <span>←</span>
-            <span>Back to Courses</span>
+            ← Back to Courses
           </button>
 
           {/* MOBILE CARD */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 mx-auto mb-4 w-full max-w-[95vw] md:max-w-full md:p-0 md:shadow-none md:hidden">
+          <div className="bg-white rounded-2xl shadow-lg p-4 mx-auto mb-4 w-full max-w-[95vw] md:hidden">
             <div className="flex flex-col items-center">
               <img
                 src={course.thumbnail_url}
@@ -61,14 +104,32 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
                 loading="eager"
               />
               <h1 className="text-xl font-bold text-gray-900 text-center mb-2">{course.title}</h1>
+
               <div className="mb-3">
                 {!isEnrolled ? (
-                  <button
-                    onClick={handleBuyNow}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
-                  >
-                    Buy Now — ₹{course.price}
-                  </button>
+                  parseFloat(course.price) === 0 ? (
+                    <button
+                      onClick={handleEnroll}
+                      disabled={processing}
+                      className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
+                    >
+                      {processing ? (
+                        <>
+                          <LoaderCircle className="animate-spin mr-2" size={16} />
+                          Providing access…
+                        </>
+                      ) : (
+                        'Free — Enroll Now'
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleBuyNow}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-lg shadow transition"
+                    >
+                      Buy Now — ₹{course.price}
+                    </button>
+                  )
                 ) : (
                   <button
                     disabled
@@ -78,7 +139,11 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
                   </button>
                 )}
               </div>
-              <p className="text-gray-700 text-center text-sm mb-4 leading-relaxed">{course.description}</p>
+
+              <p className="text-gray-700 text-center text-sm mb-4 leading-relaxed">
+                {course.description}
+              </p>
+
               <button
                 onClick={() => setShowChapters(true)}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 rounded-lg transition shadow"
@@ -88,9 +153,8 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
             </div>
           </div>
 
-          {/* DESKTOP CARD - improved */}
+          {/* DESKTOP CARD */}
           <div className="hidden md:flex bg-white rounded-2xl shadow-lg overflow-hidden max-w-3xl mx-auto mb-4">
-            {/* Image section */}
             <div className="flex-shrink-0 flex items-center justify-center bg-gray-100 w-80 h-72">
               <img
                 src={course.thumbnail_url}
@@ -99,24 +163,44 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
                 loading="eager"
               />
             </div>
-            {/* Content section */}
             <div className="flex flex-col justify-center px-10 py-8 w-full">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{course.title}</h1>
               <div className="mb-4">
                 {!isEnrolled ? (
-                  <button
-                    onClick={handleBuyNow}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition mb-2"
-                  >
-                    Buy Now — ₹{course.price}
-                  </button>
+                  parseFloat(course.price) === 0 ? (
+                    <button
+                      onClick={handleEnroll}
+                      disabled={processing}
+                      className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition mb-2"
+                    >
+                      {processing ? (
+                        <>
+                          <LoaderCircle className="animate-spin mr-2" size={18} />
+                          Providing access…
+                        </>
+                      ) : (
+                        'Free — Enroll Now'
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleBuyNow}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition mb-2"
+                    >
+                      Buy Now — ₹{course.price}
+                    </button>
+                  )
                 ) : (
                   <span className="inline-block bg-green-100 text-green-700 font-semibold px-5 py-2 rounded-lg mb-2">
                     Already Enrolled
                   </span>
                 )}
               </div>
-              <p className="text-gray-700 text-base mb-6 leading-relaxed">{course.description}</p>
+
+              <p className="text-gray-700 text-base mb-6 leading-relaxed">
+                {course.description}
+              </p>
+
               <button
                 onClick={() => setShowChapters(true)}
                 className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium py-2 rounded-lg transition"
@@ -126,10 +210,9 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
             </div>
           </div>
 
-          {/* CHAPTERS MODAL MOBILE & DESKTOP */}
+          {/* CHAPTERS MODAL */}
           {showChapters && (
-            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-40 transition-all">
-              {/* Modal content */}
+            <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black bg-opacity-40">
               <div className="bg-white rounded-t-2xl md:rounded-lg shadow-lg w-full max-w-md mx-auto p-5 animate-fadeInUp md:animate-none">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-bold text-gray-900">Chapters</h2>
@@ -138,7 +221,9 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
                     className="text-gray-400 hover:text-blue-600 rounded-full focus:outline-none"
                     aria-label="Close"
                   >
-                    <svg height="24" width="24" viewBox="0 0 20 20" fill="currentColor"><path d="M10 8.586l4.95-4.95a1 1 0 111.414 1.415l-4.95 4.95 4.95 4.95a1 1 0 01-1.414 1.415l-4.95-4.95-4.95 4.95a1 1 0 01-1.415-1.415l4.95-4.95-4.95-4.95A1 1 0 015.05 3.636l4.95 4.95z" /></svg>
+                    <svg height="24" width="24" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M10 8.586l4.95-4.95a1 1 0 111.414 1.415l-4.95 4.95 4.95 4.95a1 1 0 01-1.414 1.415l-4.95-4.95-4.95 4.95a1 1 0 01-1.415-1.415l4.95-4.95-4.95-4.95A1 1 0 015.05 3.636l4.95 4.95z" />
+                    </svg>
                   </button>
                 </div>
                 <div className="space-y-3 max-h-60 overflow-y-auto pb-2">
@@ -164,7 +249,7 @@ export default function CourseDetails({ apiUrl, courseId, onBack }) {
 
         </div>
       </div>
-      {/* Animations */}
+
       <style>{`
         @media (max-width: 767px) {
           .animate-fadeInUp {
