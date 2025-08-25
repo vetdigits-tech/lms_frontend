@@ -36,7 +36,7 @@ export default function Home() {
   const router = useRouter();
   const [showContact, setShowContact] = useState(false);
 
-  const fullText = 'Welcome to VetDigit LMS';
+  const fullText = 'Welcome to VetDigit';
   const [typedText, setTypedText] = useState('');
   const [completed, setCompleted] = useState(false);
 
