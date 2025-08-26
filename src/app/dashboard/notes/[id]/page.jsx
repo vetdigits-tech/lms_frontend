@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { FileText, Menu, X } from "lucide-react";
+import { FileText, Menu, X, Maximize2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 function extractDriveFileId(url) {
@@ -27,7 +27,7 @@ export default function NoteChaptersPage() {
 
   const viewerRef = useRef(null);
 
-  // 🔹 Request fullscreen on mobile
+  // 🔹 Request fullscreen
   const openFullscreen = async () => {
     const el = viewerRef.current;
     if (!el) return;
@@ -86,7 +86,6 @@ export default function NoteChaptersPage() {
     setActiveId(chapterId);
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
-      setTimeout(() => openFullscreen(), 300);
     }
   };
 
@@ -157,8 +156,19 @@ export default function NoteChaptersPage() {
         <div className="flex-1 bg-gray-50 flex">
           <div
             ref={viewerRef}
-            className="flex-1 bg-white border rounded-xl shadow overflow-hidden m-4"
+            className="flex-1 bg-white border rounded-xl lg:rounded-xl shadow overflow-hidden m-4 lg:m-4 mx-0 lg:mx-4 my-0 lg:my-4 relative"
           >
+            {/* 🔹 Fullscreen Button - Mobile positioned over PDF, Desktop in corner */}
+            {previewSrc && (
+              <button
+                onClick={openFullscreen}
+                className="absolute top-4 right-4 z-20 p-3 lg:p-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors shadow-lg flex items-center justify-center"
+                title="Open Fullscreen"
+              >
+                <Maximize2 className="w-6 h-6 lg:w-5 lg:h-5" />
+              </button>
+            )}
+            
             {previewSrc ? (
               <iframe
                 key={previewSrc}
