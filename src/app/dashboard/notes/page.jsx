@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -22,8 +22,16 @@ export default function NotesList() {
           headers: { Accept: "application/json" },
         });
         if (!res.ok) throw new Error(`Failed to load notes: ${res.status}`);
-        const data = await res.json();
-        setNotes(data || []);
+        let data = await res.json();
+
+        // ✅ Purchased notes first
+        data = (data || []).sort((a, b) => {
+          if (a.is_enrolled && !b.is_enrolled) return -1;
+          if (!a.is_enrolled && b.is_enrolled) return 1;
+          return 0;
+        });
+
+        setNotes(data);
       } catch (err) {
         console.error("Failed to load notes subjects:", err);
         setError(err.message);
@@ -55,6 +63,41 @@ export default function NotesList() {
     );
   }
 
+  // Price / Enrollment Status
+  const renderPriceOrStatus = (note) => {
+    if (note.is_enrolled) {
+      return (
+        <span className="px-3 py-1 text-xs font-bold text-gray-600 border border-gray-400 rounded-full">
+          Already Enrolled
+        </span>
+      );
+    }
+
+    const numPrice = Number(note.price);
+    if (!note.price || numPrice === 0 || note.price === "0") {
+      return (
+        <span className="px-3 py-1 text-xs font-bold text-green-600 border border-green-600 rounded-full">
+          FREE!
+        </span>
+      );
+    }
+
+    return (
+      <span className="px-3 py-1 text-xs font-bold text-blue-600 border border-blue-600 rounded-full">
+        ₹{numPrice.toLocaleString("en-IN")}
+      </span>
+    );
+  };
+
+  // Handle Click
+  const handleClick = (note) => {
+    if (note.is_enrolled) {
+      router.push(`/dashboard/notes/${note.id}`);
+    } else {
+      router.push(`/dashboard/notes/checkout/${note.id}`);
+    }
+  };
+
   return (
     <div>
       {/* --------- MOBILE VERTICAL LIST ---------- */}
@@ -66,7 +109,7 @@ export default function NotesList() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05, type: "spring", stiffness: 120 }}
-            onClick={() => router.push(`/dashboard/notes/${note.id}`)}
+            onClick={() => handleClick(note)}
           >
             <div className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden">
               <div className="w-full bg-gray-100 flex items-center justify-center">
@@ -83,9 +126,12 @@ export default function NotesList() {
                 <p className="text-gray-600 text-sm mb-3 line-clamp-3">
                   {note.description}
                 </p>
-                <button className="text-blue-600 font-medium hover:text-blue-800">
-                  View Details
-                </button>
+                <div className="flex items-center justify-between">
+                  {renderPriceOrStatus(note)}
+                  <button className="text-blue-600 font-medium hover:text-blue-800">
+                    {note.is_enrolled ? "Open" : "View Details"}
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -105,7 +151,7 @@ export default function NotesList() {
               y: -5,
               boxShadow: "0px 10px 15px rgba(0, 0, 0, 0.1)",
             }}
-            onClick={() => router.push(`/dashboard/notes/${note.id}`)}
+            onClick={() => handleClick(note)}
           >
             <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
               <div className="w-full overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -122,9 +168,12 @@ export default function NotesList() {
                 <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                   {note.description}
                 </p>
-                <button className="text-blue-600 font-medium hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                  View Details
-                </button>
+                <div className="flex items-center justify-between">
+                  {renderPriceOrStatus(note)}
+                  <button className="text-blue-600 font-medium hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    {note.is_enrolled ? "Open" : "View Details"}
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>

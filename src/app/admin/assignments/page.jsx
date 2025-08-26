@@ -13,9 +13,7 @@ const getCookie = (name) => {
   return match ? decodeURIComponent(match[2]) : null;
 };
 
-// Always call this for any mutating request (POST/PUT/DELETE/uploads)
 const authFetch = async (url, options = {}) => {
-  // Make sure Laravel Sanctum sets the XSRF-TOKEN cookie
   await fetch(`${API_URL}/sanctum/csrf-cookie`, { credentials: "include" });
 
   const xsrf = getCookie("XSRF-TOKEN");
@@ -32,10 +30,39 @@ const authFetch = async (url, options = {}) => {
   });
 };
 
+// ✅ Helper function to extract Google Drive folder ID from URL
+const extractFolderId = (url) => {
+  if (!url) return '';
+  
+  // If it's already just an ID (no URL), return as-is
+  if (!url.includes('drive.google.com')) {
+    return url;
+  }
+  
+  // Extract folder ID from full URL
+  const match = url.match(/\/folders\/([a-zA-Z0-9-_]+)/);
+  return match ? match[1] : url;
+};
+
+// ✅ Helper function to convert folder ID back to full URL
+const convertToFullUrl = (folderId) => {
+  if (!folderId) return '';
+  
+  // If it's already a full URL, return as-is
+  if (folderId.includes('drive.google.com')) {
+    return folderId;
+  }
+  
+  // Convert folder ID back to full URL for editing
+  return `https://drive.google.com/drive/folders/${folderId}`;
+};
+
 const emptySubject = () => ({
   name: "",
   description: "",
+  price: "",
   thumbnail_url: "",
+  drive_folder_id: "",
   chapters: [{ title: "", pdf_url: "" }],
 });
 
@@ -49,6 +76,8 @@ export default function ManageNotesPage() {
   const [selectedEditId, setSelectedEditId] = useState("");
 
   const [uploading, setUploading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncingCreate, setSyncingCreate] = useState(false);
 
   /* ------------------------------- Fetching ------------------------------ */
   const fetchSubjects = async () => {
@@ -73,7 +102,8 @@ export default function ManageNotesPage() {
     fetchSubjects();
   }, []);
 
-  /* ------------------------- General field handlers ------------------------- */
+  /* ------------------------- Field Handlers ------------------------- */
+  // ✅ KEEP FULL URL: Don't extract folder ID in onChange
   const handleField = (e, isEdit = false) => {
     const { name, value } = e.target;
     (isEdit ? setEditForm : setForm)((prev) => ({ ...prev, [name]: value }));
@@ -104,7 +134,87 @@ export default function ManageNotesPage() {
     }));
   };
 
-  /* ----------------------------- Thumbnail I/O ----------------------------- */
+  /* ----------------------------- Sync Drive for Create Form ----------------------------- */
+  const handleSyncDriveCreate = async () => {
+    if (!form.drive_folder_id) {
+      toast.error("Please enter a Google Drive folder URL first");
+      return;
+    }
+
+    setSyncingCreate(true);
+    try {
+      // ✅ Use FULL URL for sync endpoint
+      const res = await authFetch(`${API_URL}/api/sync-drive-folder`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ drive_folder_id: form.drive_folder_id }), // Full URL
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Failed to sync with Drive");
+      }
+
+      const data = await res.json();
+      toast.success("PDFs synced from Google Drive!");
+
+      const syncedChapters =
+        data.chapters?.map((ch) => ({
+          title: ch.name || ch.title || "",
+          pdf_url: ch.pdf_url || "",
+        })) || [];
+
+      setForm((prev) => ({
+        ...prev,
+        chapters: syncedChapters.length > 0 ? syncedChapters : [{ title: "", pdf_url: "" }],
+      }));
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Sync failed");
+    } finally {
+      setSyncingCreate(false);
+    }
+  };
+
+  /* ----------------------------- Sync Drive for Edit Form ----------------------------- */
+  const handleSyncDrive = async () => {
+    if (!selectedEditId) {
+      toast.error("Select a subject to sync");
+      return;
+    }
+    setSyncing(true);
+    try {
+      const res = await authFetch(
+        `${API_URL}/api/note-subjects/${selectedEditId}/sync-drive`,
+        { method: "GET" }
+      );
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Failed to sync with Drive");
+      }
+      const data = await res.json();
+
+      toast.success("Chapters synced with Google Drive!");
+
+      const chapters =
+        data.subject?.chapters?.map((ch) => ({
+          id: ch.id ?? null,
+          title: ch.name ?? "",
+          pdf_url: ch.pdf_url ?? "",
+        })) ?? [];
+
+      setEditForm((prev) => ({ ...prev, chapters: chapters.length ? chapters : [{ title: "", pdf_url: "" }] }));
+
+      fetchSubjects();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  /* ----------------------------- File Upload ----------------------------- */
   const handleFileUpload = async (e, isEdit = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -117,7 +227,10 @@ export default function ManageNotesPage() {
         method: "POST",
         body: data,
       });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Upload failed");
+      }
       const { url } = await res.json();
 
       (isEdit ? setEditForm : setForm)((prev) => ({
@@ -127,7 +240,7 @@ export default function ManageNotesPage() {
       toast.success("Thumbnail uploaded!");
     } catch (err) {
       console.error(err);
-      toast.error("Upload failed");
+      toast.error(err.message || "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -143,7 +256,10 @@ export default function ManageNotesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: state.thumbnail_url }),
       });
-      if (!res.ok) throw new Error("Failed to remove thumbnail");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Failed to remove thumbnail");
+      }
 
       (isEdit ? setEditForm : setForm)((prev) => ({
         ...prev,
@@ -152,20 +268,27 @@ export default function ManageNotesPage() {
       toast.success("Thumbnail removed!");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to remove thumbnail.");
+      toast.error(err.message || "Failed to remove thumbnail.");
     } finally {
       setUploading(false);
     }
   };
 
-  /* --------------------------------- Create -------------------------------- */
+  /* ----------------------------- Create Subject ----------------------------- */
   const handleCreate = async (e) => {
     e.preventDefault();
+    
+    // ✅ Extract folder ID ONLY when submitting to database
+    const folderId = extractFolderId(form.drive_folder_id);
+    console.log('Creating subject with extracted folder ID:', folderId);
+    
     try {
       const payload = {
         name: form.name,
         description: form.description || "",
+        price: form.price === "" ? null : Number(form.price),
         thumbnail_url: form.thumbnail_url || "",
+        drive_folder_id: folderId, // ✅ Use extracted folder ID for database
         chapters: form.chapters.map((c) => ({
           title: c.title || "",
           pdf_url: c.pdf_url || "",
@@ -192,41 +315,51 @@ export default function ManageNotesPage() {
     }
   };
 
-  /* ---------------------------------- Edit --------------------------------- */
+  /* ----------------------------- Edit Subject ----------------------------- */
+  // ✅ UPDATED: Convert folder ID back to full URL for editing
   const handleEditSelect = (e) => {
     const id = e.target.value;
     setSelectedEditId(id);
     const subj = subjects.find((s) => String(s.id) === String(id));
-    if (!subj) return;
+    if (!subj) {
+      setEditForm(emptySubject());
+      return;
+    }
 
     setEditForm({
       name: subj.name || "",
       description: subj.description || "",
+      price: subj.price ?? "",
       thumbnail_url: subj.thumbnail_url || "",
+      drive_folder_id: convertToFullUrl(subj.drive_folder_id), // ✅ Convert to full URL
       chapters:
         Array.isArray(subj.chapters) && subj.chapters.length > 0
           ? subj.chapters.map((ch) => ({
-              title: ch.name || "",
-              pdf_url: ch.pdf_url || "",
               id: ch.id ?? null,
+              title: ch.name ?? "",
+              pdf_url: ch.pdf_url ?? "",
             }))
           : [{ title: "", pdf_url: "" }],
     });
 
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    window?.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     if (!selectedEditId) return;
 
+    // ✅ Extract folder ID ONLY when submitting to database
+    const folderId = extractFolderId(editForm.drive_folder_id);
+    console.log('Updating subject with extracted folder ID:', folderId);
+
     try {
       const payload = {
         name: editForm.name,
         description: editForm.description || "",
+        price: editForm.price === "" ? null : Number(editForm.price),
         thumbnail_url: editForm.thumbnail_url || "",
+        drive_folder_id: folderId, // ✅ Use extracted folder ID for database
         chapters: editForm.chapters.map((c) => ({
           id: c.id ?? null,
           title: c.title || "",
@@ -258,18 +391,22 @@ export default function ManageNotesPage() {
     }
   };
 
+  /* ----------------------------- Delete Subject ----------------------------- */
   const handleDelete = async (id) => {
     if (!confirm("Delete this subject?")) return;
     try {
       const res = await authFetch(`${API_URL}/api/notes/subjects/${id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error("Failed to delete subject");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.message || "Failed to delete subject");
+      }
       toast.success("Subject deleted");
       fetchSubjects();
     } catch (err) {
       console.error(err);
-      toast.error("Error deleting subject");
+      toast.error(err.message || "Error deleting subject");
     }
   };
 
@@ -278,10 +415,11 @@ export default function ManageNotesPage() {
     setEditForm(emptySubject());
   };
 
-  /* ---------------------------------- UI ---------------------------------- */
+  /* ----------------------------- UI ----------------------------- */
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto">
+        {/* Heading */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Manage Notes</h1>
           <Link
@@ -330,6 +468,49 @@ export default function ManageNotesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="price"
+                  value={form.price}
+                  onChange={(e) => handleField(e, false)}
+                  placeholder="Enter price (e.g., 199.00)"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Google Drive Folder URL
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    name="drive_folder_id"
+                    value={form.drive_folder_id}
+                    onChange={(e) => handleField(e, false)}
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    className="flex-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSyncDriveCreate}
+                    disabled={syncingCreate || !form.drive_folder_id}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {syncingCreate ? "Syncing..." : "🔄 Sync"}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Paste your Google Drive folder URL. Folder ID will be auto-extracted when saving.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Thumbnail
                 </label>
                 <div className="flex items-center gap-4">
@@ -361,14 +542,11 @@ export default function ManageNotesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Chapters
+                  Chapters {syncingCreate && <span className="text-purple-600">(Syncing from Drive...)</span>}
                 </label>
 
                 {form.chapters.map((chapter, idx) => (
-                  <div
-                    key={idx}
-                    className="border border-gray-200 rounded-md p-4 mb-3"
-                  >
+                  <div key={idx} className="border border-gray-200 rounded-md p-4 mb-3">
                     <div className="space-y-3">
                       <input
                         type="text"
@@ -378,11 +556,10 @@ export default function ManageNotesPage() {
                           handleChapterField(idx, "title", e.target.value, false)
                         }
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        required
                       />
                       <input
                         type="url"
-                        placeholder="PDF URL (e.g., https://example.com/file.pdf)"
+                        placeholder="PDF URL (optional)"
                         value={chapter.pdf_url}
                         onChange={(e) =>
                           handleChapterField(idx, "pdf_url", e.target.value, false)
@@ -390,6 +567,7 @@ export default function ManageNotesPage() {
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
+
                     {chapter.pdf_url && (
                       <a
                         href={chapter.pdf_url}
@@ -400,6 +578,7 @@ export default function ManageNotesPage() {
                         View PDF
                       </a>
                     )}
+
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         type="button"
@@ -487,6 +666,41 @@ export default function ManageNotesPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="price"
+                    value={editForm.price}
+                    onChange={(e) => handleField(e, true)}
+                    placeholder="Enter price (e.g., 199.00)"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* ✅ FIXED: Google Drive field - Optional and accepts both URL formats */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Google Drive Folder URL (Optional)
+                  </label>
+                  <input
+                    type="text"  // ✅ Changed from "url" to "text" to avoid HTML validation
+                    name="drive_folder_id"
+                    value={editForm.drive_folder_id}
+                    onChange={(e) => handleField(e, true)}
+                    placeholder="https://drive.google.com/drive/folders/... (optional)"
+                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                    // ✅ No "required" attribute
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Optional: Paste your Google Drive folder URL. Folder ID will be auto-extracted when saving.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Thumbnail
                   </label>
                   <div className="flex items-center gap-4">
@@ -517,15 +731,23 @@ export default function ManageNotesPage() {
                 </div>
 
                 <div>
+                  <button
+                    type="button"
+                    onClick={handleSyncDrive}
+                    disabled={syncing}
+                    className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700"
+                  >
+                    {syncing ? "Syncing..." : "🔄 Sync with Google Drive"}
+                  </button>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Chapters
                   </label>
 
                   {editForm.chapters.map((chapter, idx) => (
-                    <div
-                      key={idx}
-                      className="border border-gray-200 rounded-md p-4 mb-3"
-                    >
+                    <div key={idx} className="border border-gray-200 rounded-md p-4 mb-3">
                       <div className="space-y-3">
                         <input
                           type="text"
@@ -539,7 +761,7 @@ export default function ManageNotesPage() {
                         />
                         <input
                           type="url"
-                          placeholder="PDF URL (e.g., https://example.com/file.pdf)"
+                          placeholder="PDF URL (optional)"
                           value={chapter.pdf_url}
                           onChange={(e) =>
                             handleChapterField(idx, "pdf_url", e.target.value, true)
@@ -547,6 +769,7 @@ export default function ManageNotesPage() {
                           className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                         />
                       </div>
+
                       {chapter.pdf_url && (
                         <a
                           href={chapter.pdf_url}
@@ -557,6 +780,7 @@ export default function ManageNotesPage() {
                           View PDF
                         </a>
                       )}
+
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           type="button"
@@ -628,15 +852,17 @@ export default function ManageNotesPage() {
                   <h3 className="text-lg font-semibold mb-1">{s.name}</h3>
                   <p className="text-gray-600 mb-2">{s.description}</p>
 
+                  {s.price !== undefined && s.price !== null && (
+                    <p className="text-sm font-medium text-gray-800 mb-2">Price: ₹{s.price}</p>
+                  )}
+
                   {Array.isArray(s.chapters) && s.chapters.length > 0 && (
                     <div className="text-sm text-gray-700 mb-3">
-                      <p className="font-medium mb-1">
-                        Chapters ({s.chapters.length})
-                      </p>
+                      <p className="font-medium mb-1">Chapters ({s.chapters.length})</p>
                       <ul className="list-disc ml-5 space-y-1">
                         {s.chapters.slice(0, 4).map((c) => (
                           <li key={c.id || c.title}>
-                            {c.title} —{" "}
+                            {c.name || c.title} —{" "}
                             <a
                               className="text-blue-600 underline"
                               href={c.pdf_url}
@@ -654,9 +880,7 @@ export default function ManageNotesPage() {
 
                   <div className="flex gap-2">
                     <button
-                      onClick={() =>
-                        handleEditSelect({ target: { value: s.id } })
-                      }
+                      onClick={() => handleEditSelect({ target: { value: s.id } })}
                       className="flex-1 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 text-sm"
                     >
                       Edit

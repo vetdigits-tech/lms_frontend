@@ -103,7 +103,8 @@ export default function AdminDashboard() {
         <DashboardCard icon={<BookOpen className="w-8 h-8 text-blue-500" />} title="Manage Courses" href="/admin/courses" />
         <DashboardCard icon={<Users className="w-8 h-8 text-green-500" />} title="Enroll / Remove Students" href="/admin/enrollments" />
         <DashboardCard icon={<ClipboardList className="w-8 h-8 text-purple-500" />} title="Manage Quizzes" href="/admin/quizzes" />
-        <DashboardCard icon={<FileText className="w-8 h-8 text-yellow-500" />} title="Manage Assignments" href="/admin/assignments" />
+        <DashboardCard icon={<FileText className="w-8 h-8 text-yellow-500" />} title="Manage Notes" href="/admin/assignments" />
+        <DashboardCard icon={<FileText className="w-8 h-8 text-yellow-500" />} title="Manage Notes Students" href="/admin/notes" />
       </div>
     </main>
   );
