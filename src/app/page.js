@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Instagram, Send } from 'lucide-react'; // Added lucide react icons
 
 function LoadingScreen() {
   return (
@@ -64,6 +65,41 @@ export default function Home() {
 
   return (
     <main className="relative flex flex-col items-center min-h-screen bg-gradient-to-br from-blue-700 to-purple-700 px-4 py-16 text-white">
+      
+      {/* Mobile Social Media Icons - Only visible on mobile */}
+      <div className="md:hidden absolute top-4 left-4 flex items-center space-x-4">
+        {/* Logo - Non-clickable */}
+        <div className="flex-shrink-0">
+          <Image
+            src="https://res.cloudinary.com/deqwz7nib/image/upload/v1756563268/jtdekluqvt6t9vqlbnfm.png"
+            alt="VetDigit Logo"
+            width={32}
+            height={32}
+            className="rounded-lg"
+          />
+        </div>
+
+        {/* Instagram Icon */}
+        <Link 
+          href="https://www.instagram.com/vets_smile/" // Replace with actual Instagram URL
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 hover:scale-110 transition-all duration-200"
+        >
+          <Instagram size={20} className="text-white" />
+        </Link>
+
+        {/* Telegram Icon */}
+        <Link 
+          href="https://t.me/vetssmile"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 hover:scale-110 transition-all duration-200"
+        >
+          <Send size={20} className="text-white" />
+        </Link>
+      </div>
+
       {/* Contact toggle */}
       <button
         onClick={() => setShowContact(v => !v)}
@@ -71,6 +107,7 @@ export default function Home() {
       >
         {showContact ? 'Close' : 'Contact Us'}
       </button>
+      
       {showContact && (
         <div className="absolute top-16 right-4 w-72 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden animate-in slide-in-from-top-2 duration-200">
           {/* Modern Header with Subtle Gradient */}
