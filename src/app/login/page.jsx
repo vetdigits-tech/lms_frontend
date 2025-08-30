@@ -89,34 +89,34 @@ export default function LoginPageContent() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-indigo-500/10"></div>
       </div>
       
-      <div className="relative w-full max-w-xs sm:max-w-sm">
+      <div className="relative w-full max-w-xs sm:max-w-sm transform -translate-y-8 sm:translate-y-0">
         {/* Ultra Compact Square Login Card */}
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white/95 backdrop-blur-xl shadow-2xl border border-white/20">
           
-          {/* Very Compact Header */}
-          <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 py-4 sm:px-6 sm:py-5 text-center">
+          {/* Header - reduced padding only on mobile */}
+          <div className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-4 py-3 sm:px-6 sm:py-5 text-center">
             <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
             <div className="relative">
-              <div className="mx-auto mb-2 w-8 h-8 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <div className="mx-auto mb-1 sm:mb-2 w-7 h-7 sm:w-10 sm:h-10 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                <Lock className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h1 className="text-lg sm:text-xl font-bold text-white mb-1">Welcome Back</h1>
+              <h1 className="text-lg sm:text-xl font-black sm:font-bold text-white mb-0 sm:mb-1">Welcome Back</h1>
               <p className="text-blue-100 text-xs hidden sm:block">Sign in to VetDigit</p>
             </div>
           </div>
 
-          {/* Ultra Compact Form */}
-          <div className="px-4 py-4 sm:px-6 sm:py-5">
+          {/* Form - reduced padding only on mobile */}
+          <div className="px-4 py-3 sm:px-6 sm:py-5">
             {error && (
-              <div className="mb-3 rounded-lg bg-red-50 border border-red-200 p-2 sm:p-3">
+              <div className="mb-2 sm:mb-3 rounded-lg bg-red-50 border border-red-200 p-2 sm:p-3">
                 <p className="text-center text-xs text-red-700 font-medium">{error}</p>
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-              {/* Email - Ultra Compact */}
+            <form onSubmit={handleSubmit} className="space-y-2 sm:space-y-4">
+              {/* Email - unchanged */}
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1">Email</label>
+                <label className="text-xs font-bold sm:font-medium text-gray-700 block mb-1">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-3 w-3 sm:h-4 sm:w-4 -translate-y-1/2 text-gray-400" />
                   <input
@@ -131,9 +131,20 @@ export default function LoginPageContent() {
                 </div>
               </div>
 
-              {/* Password - Ultra Compact */}
+              {/* Password - inline label + forgot on mobile only */}
               <div>
-                <label className="text-xs font-medium text-gray-700 block mb-1">Password</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold sm:font-medium text-gray-700">Password</label>
+                  {/* Show forgot button inline on mobile, separate on desktop */}
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-bold sm:font-medium hover:underline transition-colors flex items-center space-x-1 sm:hidden"
+                  >
+                    <KeyRound className="w-3 h-3" />
+                    <span>Forgot?</span>
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-3 w-3 sm:h-4 sm:w-4 -translate-y-1/2 text-gray-400" />
                   <input
@@ -155,8 +166,8 @@ export default function LoginPageContent() {
                 </div>
               </div>
 
-              {/* Forgot Password - Ultra Compact */}
-              <div className="flex justify-end">
+              {/* Forgot Password - show only on desktop */}
+              <div className="hidden sm:flex justify-end">
                 <button
                   type="button"
                   onClick={handleResetPassword}
@@ -167,11 +178,11 @@ export default function LoginPageContent() {
                 </button>
               </div>
 
-              {/* Sign In Button - Compact */}
+              {/* Sign In Button */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 sm:py-3 text-xs sm:text-sm text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 sm:py-3 text-xs sm:text-sm text-white font-bold sm:font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center justify-center space-x-2">
                   {isLoading ? (
@@ -185,8 +196,8 @@ export default function LoginPageContent() {
                 </div>
               </button>
 
-              {/* Minimal Divider */}
-              <div className="relative flex items-center justify-center py-1">
+              {/* Divider - hide on mobile, show on desktop */}
+              <div className="relative hidden sm:flex items-center justify-center py-1">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
@@ -195,11 +206,11 @@ export default function LoginPageContent() {
                 </div>
               </div>
 
-              {/* Google Button - Compact */}
+              {/* Google Button - moved up on mobile */}
               <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                className="w-full rounded-lg border border-gray-200 bg-white py-2.5 sm:py-3 text-xs sm:text-sm text-gray-700 font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2"
+                className="w-full mt-1 sm:mt-0 rounded-lg border border-gray-200 bg-white py-2.5 sm:py-3 text-xs sm:text-sm text-gray-700 font-bold sm:font-medium hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2"
               >
                 <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -212,11 +223,11 @@ export default function LoginPageContent() {
               </button>
             </form>
 
-            {/* Minimal Footer */}
-            <div className="mt-3 sm:mt-4 text-center">
+            {/* Footer - compact on mobile */}
+            <div className="mt-2 sm:mt-4 text-center">
               <p className="text-xs text-gray-600">
                 <span className="hidden sm:inline">Don't have an account? </span>
-                <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+                <Link href="/register" className="font-bold sm:font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                   <span className="sm:hidden">Create account</span>
                   <span className="hidden sm:inline">Create one</span>
                 </Link>
