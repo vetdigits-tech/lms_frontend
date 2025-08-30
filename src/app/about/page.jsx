@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { Instagram, Send } from 'lucide-react'; // Added Icons
 
 export default function AboutUsPage() {
   return (
@@ -24,7 +25,7 @@ export default function AboutUsPage() {
             <p>
               With full support from industry leaders like{' '}
               <Link
-                href="https://www.aquavitoelab.com/" // Replace with actual link
+                href="https://www.aquavitoelab.com/"
                 target="_blank"
                 className="text-blue-700 underline hover:text-blue-900 font-medium"
               >
@@ -95,7 +96,7 @@ export default function AboutUsPage() {
                 </p>
               </motion.div>
 
-              {/* Founder 3 */}
+              {/* Founder 3 (Updated) */}
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 initial={{ opacity: 0, y: 30 }}
@@ -108,6 +109,22 @@ export default function AboutUsPage() {
                 <p className="mt-3 text-sm text-gray-500">
                   Indian Veterinary Research Institute (ICAR-IVRI), Bareilly
                 </p>
+                <div className="flex justify-center gap-4 mt-4">
+                  <Link
+                    href="https://www.instagram.com/vets_smile/"
+                    target="_blank"
+                    className="text-pink-600 hover:text-pink-800"
+                  >
+                    <Instagram size={22} />
+                  </Link>
+                  <Link
+                    href="https://t.me/vetssmile"
+                    target="_blank"
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    <Send size={22} />
+                  </Link>
+                </div>
               </motion.div>
             </div>
           </section>

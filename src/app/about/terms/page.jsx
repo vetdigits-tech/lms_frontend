@@ -9,7 +9,7 @@ export default function TermsAndConditions() {
       <p className="mb-2 text-sm text-gray-600">
         <strong>Effective Date:</strong> June 28, 2025
         <br />
-        <strong>Last Updated:</strong> June 28, 2025
+        <strong>Last Updated:</strong> August 30, 2025
       </p>
 
       <p className="mb-6">
@@ -50,31 +50,40 @@ export default function TermsAndConditions() {
         licensors. Unauthorized copying or redistribution is strictly prohibited.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">6. Third-Party Integrations</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">6. No Refund Policy</h2>
+      <p>
+        All purchases made on <strong>VetDigit</strong> are <strong>non-refundable</strong>. 
+        This includes course enrollments, downloadable materials, and subscription fees. 
+        Once payment is completed, no refunds or cancellations will be issued, regardless of 
+        course completion status or usage. Please review course details carefully before 
+        making any purchase.
+      </p>
+
+      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">7. Third-Party Integrations</h2>
       <p>
         We may integrate with services like Google Drive and Cloudinary. Use of those
         services is subject to their respective terms and conditions.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">7. Disclaimer of Warranties</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">8. Disclaimer of Warranties</h2>
       <p>
         All platform content is provided “as is” with no guarantees or warranties. VetDigit
         is not responsible for outcomes based on the information provided.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">8. Limitation of Liability</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">9. Limitation of Liability</h2>
       <p>
         We are not liable for indirect or consequential damages, technical issues, or
         interruptions to service beyond our control.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">9. Changes to Terms</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">10. Changes to Terms</h2>
       <p>
         We may revise these Terms at any time. Continued use of the platform implies
         acceptance of the latest version.
       </p>
 
-      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">10. Contact</h2>
+      <h2 className="text-2xl font-semibold mt-8 mb-2 text-blue-700">11. Contact</h2>
       <p>
         Email: <a href="mailto:vetdigits@gmail.com" className="text-blue-600 underline">vetdigits@gmail.com</a>
         <br />

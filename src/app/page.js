@@ -71,13 +71,91 @@ export default function Home() {
         {showContact ? 'Close' : 'Contact Us'}
       </button>
       {showContact && (
-        <div className="absolute top-16 right-4 w-64 rounded-lg bg-white/90 p-4 text-center text-sm font-semibold text-blue-800 shadow-lg backdrop-blur-sm">
-          <p className="uppercase text-xs tracking-wide text-gray-600">Email</p>
-          <a href="mailto:vetdigits@gmail.com" className="break-words text-blue-700 underline hover:text-blue-900">
-            vetdigits@gmail.com
-          </a>
+        <div className="absolute top-16 right-4 w-72 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden animate-in slide-in-from-top-2 duration-200">
+          {/* Modern Header with Subtle Gradient */}
+          <div className="relative bg-gradient-to-br from-slate-50 to-gray-100 px-5 py-3 border-b border-gray-100/80">
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5"></div>
+            <h3 className="relative text-sm font-semibold text-gray-800 text-center tracking-tight">
+              Let's Connect
+            </h3>
+          </div>
+
+          {/* Modern Content with Cards */}
+          <div className="p-5 space-y-4 bg-gradient-to-b from-white/50 to-gray-50/30">
+
+            {/* Email Card */}
+            <div className="group relative bg-white/60 hover:bg-white/80 rounded-xl p-4 border border-gray-100/50 hover:border-blue-200/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Email</p>
+                  <a
+                    href="mailto:vetdigits@gmail.com"
+                    className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors duration-200 block truncate group-hover:text-blue-600"
+                  >
+                    vetdigits@gmail.com
+                  </a>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Telegram Card */}
+            <div className="group relative bg-white/60 hover:bg-white/80 rounded-xl p-4 border border-gray-100/50 hover:border-blue-200/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+              <div className="flex items-center space-x-4">
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl overflow-hidden shadow-lg flex items-center justify-center">
+                    <img
+                      src="https://res.cloudinary.com/deqwz7nib/image/upload/v1756563268/jtdekluqvt6t9vqlbnfm.png"
+                      alt="Telegram"
+                      className="w-6 h-6 object-cover"
+                    />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Telegram</p>
+                  <a
+                    href="https://t.me/vetssmile"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-gray-800 hover:text-blue-600 transition-colors duration-200 group-hover:text-blue-600"
+                  >
+                    @vetssmile
+                  </a>
+                </div>
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Modern Footer with Status */}
+          <div className="px-5 py-3 bg-gradient-to-r from-gray-50/80 to-slate-50/80 border-t border-gray-100/60">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-xs text-gray-600 font-medium">Available now</span>
+            </div>
+          </div>
         </div>
       )}
+
+
+
 
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center text-center space-y-6 px-4">
