@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import Image from 'next/image';
 
 function LoadingScreen() {
   return (
@@ -76,7 +77,7 @@ export default function Home() {
           <div className="relative bg-gradient-to-br from-slate-50 to-gray-100 px-5 py-3 border-b border-gray-100/80">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-purple-600/5"></div>
             <h3 className="relative text-sm font-semibold text-gray-800 text-center tracking-tight">
-              Let's Connect
+              {`Let's Connect`}
             </h3>
           </div>
 
@@ -116,10 +117,12 @@ export default function Home() {
               <div className="flex items-center space-x-4">
                 <div className="relative">
                   <div className="w-10 h-10 bg-gradient-to-br from-sky-400 to-blue-500 rounded-xl overflow-hidden shadow-lg flex items-center justify-center">
-                    <img
+                    <Image
                       src="https://res.cloudinary.com/deqwz7nib/image/upload/v1756563268/jtdekluqvt6t9vqlbnfm.png"
                       alt="Telegram"
-                      className="w-6 h-6 object-cover"
+                      width={24}
+                      height={24}
+                      className="object-cover"
                     />
                   </div>
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
@@ -153,9 +156,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
-
-
 
       {/* Hero */}
       <section className="flex flex-1 flex-col items-center justify-center text-center space-y-6 px-4">
