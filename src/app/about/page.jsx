@@ -18,21 +18,7 @@ export default function AboutUsPage() {
             <p>
               At VetDigits, our mission is rooted in a single principle:{' '}
               <span className="font-semibold text-blue-700">efforts matter more than results</span>.
-              With the right intentions, guided by experts and built upon
-              collaboration, we are transforming the landscape of veterinary education in India.
-            </p>
-
-            <p>
-              With full support from industry leaders like{' '}
-              <Link
-                href="https://www.aquavitoelab.com/"
-                target="_blank"
-                className="text-blue-700 underline hover:text-blue-900 font-medium"
-              >
-                Aqua Vitoe Laboratories
-              </Link>
-              , one of the country’s top injectable manufacturers, we’ve built a platform that’s{' '}
-              <span className="font-bold text-green-700 underline">free</span>, trustworthy, and expertly curated.
+              With the right intentions, guided by experts, we are transforming the landscape of veterinary education in India.
             </p>
 
             <p>

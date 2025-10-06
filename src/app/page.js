@@ -65,7 +65,7 @@ export default function Home() {
 
   return (
     <main className="relative flex flex-col items-center min-h-screen bg-gradient-to-br from-blue-700 to-purple-700 px-4 py-16 text-white">
-      
+
       {/* Mobile Social Media Icons - Only visible on mobile */}
       <div className="md:hidden absolute top-4 left-4 flex items-center space-x-4">
         {/* Logo - Non-clickable */}
@@ -80,7 +80,7 @@ export default function Home() {
         </div>
 
         {/* Instagram Icon */}
-        <Link 
+        <Link
           href="https://www.instagram.com/vets_smile/" // Replace with actual Instagram URL
           target="_blank"
           rel="noopener noreferrer"
@@ -90,7 +90,7 @@ export default function Home() {
         </Link>
 
         {/* Telegram Icon */}
-        <Link 
+        <Link
           href="https://t.me/vetssmile"
           target="_blank"
           rel="noopener noreferrer"
@@ -107,7 +107,7 @@ export default function Home() {
       >
         {showContact ? 'Close' : 'Contact Us'}
       </button>
-      
+
       {showContact && (
         <div className="absolute top-16 right-4 w-72 bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 overflow-hidden animate-in slide-in-from-top-2 duration-200">
           {/* Modern Header with Subtle Gradient */}
@@ -238,13 +238,16 @@ export default function Home() {
           </div>
         </div>
         <div className="mx-auto mt-2 h-px w-24 bg-white/30" />
-        <div className="mt-2 text-xs sm:text-sm text-white/70">
-          POWERED BY{' '}
-          <Link href="https://www.aquavitoelab.com/" className="underline hover:text-yellow-300">
-            AQUA VITOE
-          </Link>
-        </div>
+        {/* 
+  <div className="mt-2 text-xs sm:text-sm text-white/70">
+    POWERED BY{' '}
+    <Link href="https://www.aquavitoelab.com/" className="underline hover:text-yellow-300">
+      AQUA VITOE
+    </Link>
+  </div>
+  */}
       </footer>
+
 
       <style jsx>{`
         @keyframes caret {
